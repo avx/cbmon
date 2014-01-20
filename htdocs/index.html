@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8" />
+    <title>Conference monitor</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="av" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="css/main.css">
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript">
+<!--
+        var confs=[
+        {"conf":"5001","members":0,"recording":1},
+        {"conf":"5002","members":0,"recording":0},
+        {"conf":"5003","members":0,"recording":0},
+        {"conf":"5004","members":0,"recording":0},
+        {"conf":"5005","members":0,"recording":0},
+        {"conf":"5006","members":0,"recording":1},
+        {"conf":"5007","members":0,"recording":0},
+        {"conf":"5008","members":0,"recording":1},
+        {"conf":"5009","members":0,"recording":0},
+        {"conf":"5010","members":0,"recording":0},
+        {"conf":"5011","members":0,"recording":0},
+        {"conf":"5012","members":0,"recording":1},
+        {"conf":"5013","members":0,"recording":0},
+        {"conf":"5014","members":0,"recording":0},
+        {"conf":"5015","members":0,"recording":1},
+        {"conf":"5016","members":0,"recording":0},
+        {"conf":"5017","members":0,"recording":0},
+        {"conf":"5018","members":0,"recording":0},
+        {"conf":"5019","members":0,"recording":0},
+        {"conf":"5020","members":0,"recording":1},
+        {"conf":"5021","members":0,"recording":0},
+        {"conf":"5022","members":0,"recording":0},
+        {"conf":"5023","members":0,"recording":0},
+        {"conf":"5024","members":0,"recording":0},
+        {"conf":"5025","members":0,"recording":0},
+        {"conf":"5026","members":0,"recording":0},
+        {"conf":"5027","members":0,"recording":0},
+        {"conf":"5028","members":0,"recording":1},
+        {"conf":"5029","members":0,"recording":0},
+        {"conf":"5030","members":0,"recording":1},
+        {"conf":"5040","members":0,"recording":0},
+        {"conf":"5041","members":0,"recording":0},
+        {"conf":"5042","members":0,"recording":0},
+        {"conf":"5043","members":0,"recording":0},
+        {"conf":"5044","members":0,"recording":0},
+        {"conf":"5045","members":0,"recording":0},
+        {"conf":"5046","members":0,"recording":0},
+        {"conf":"5047","members":0,"recording":0},
+        {"conf":"5048","members":0,"recording":0},
+        {"conf":"5049","members":0,"recording":0},
+        {"conf":"5050","members":0,"recording":0},
+        {"conf":"5555","members":0,"recording":0}
+        ];
+
+        function upd() {
+            $.getJSON('http://192.168.5.50:8985/list', function(data){
+                var link,conf_class;
+                var out = jQuery.extend(true, {}, confs);
+
+                if (conn_err) 
+            	    $("div#err_layer").css("display","none");
+
+                $.each(data, function(_idx, _conf){ $.each(out,function (idx,conf) { if (_conf.conf === conf.conf) out[idx].members=_conf.members; }); });
+
+                $.each(out, function(idx, conf){
+                    link="#";
+                    conf_class="free";
+                    if (conf.members>0) {
+                        conf_class="talking";
+                        link="conf.html?num="+conf.conf;
+                    }
+                    $("div#"+conf.conf).attr("class",conf_class);
+                    $("div#"+conf.conf+" > a").attr("href",link);
+                    $("td#mem_"+conf.conf).html(conf.members);
+                });
+            }).fail(function() { conn_err++; if (conn_err>2) $("div#err_layer").css("display","block"); });
+        }
+
+	var conn_err=0;
+
+        $(document).ready(function(){
+            $.each(confs, function(index, conf){ $("div#content").append("<div id="+conf.conf+" class=free><a href=#><table><tr class=l1><td>343<span class=big>"+conf.conf +"</span></td><td><div "+ (conf.recording==1?"class=rec title='Conference is recording'":"") +"></div></td></tr><tr class=l2><td id=mem_"+conf.conf+">" + conf.members +"</td><td><div class=man></div></td></tr></table></a></div>") });
+            $.ajaxSetup({cache:true});
+            upd();
+            setInterval('upd()',1000);
+        });
+-->
+    </script>
+</head>
+
+<body>
+<h1>Conference monitor</h1>
+<hr>
+<div id=content></div>
+
+<div id=err_layer>
+<div id=err_msg>
+<span id=err_hdr>Error!</span><br>Could not connect to server
+</div>
+</div>
+
+</body>
+
+</html>
