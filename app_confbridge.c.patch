@@ -1,0 +1,76 @@
+--- app_confbridge.c.orig       2013-10-09 02:14:14.000000000 +0600
++++ app_confbridge.c    2014-01-11 20:48:21.000000000 +0600
+@@ -1422,6 +1422,9 @@
+ static void conf_handle_talker_cb(struct ast_bridge *bridge, struct ast_bridge_channel *bridge_channel, void *pvt_data)
+ {
+        char *conf_name = pvt_data;
++       struct conference_bridge tmp;
++       struct conference_bridge *bridge2 = NULL;
++       struct conference_bridge_user *participant = NULL;
+        int talking;
+ 
+        switch (bridge_channel->state) {
+@@ -1456,6 +1459,23 @@
+              "Conference: %s\r\n"
+              "TalkingStatus: %s\r\n",
+              ast_channel_name(bridge_channel->chan), ast_channel_uniqueid(bridge_channel->chan), conf_name, talking ? "on" : "off");
++             
++       ast_copy_string(tmp.name, conf_name, sizeof(tmp.name));
++       bridge2 = ao2_find(conference_bridges, &tmp, OBJ_POINTER);
++
++       if (bridge2) {
++               ao2_lock(bridge2);
++               AST_LIST_TRAVERSE(&bridge2->active_list, participant, list) {
++                       if (ast_channel_name(bridge_channel->chan)==ast_channel_name(participant->chan))
++                               participant->talking=talking;
++               }
++               AST_LIST_TRAVERSE(&bridge2->waiting_list, participant, list) {
++                       if (ast_channel_name(bridge_channel->chan)==ast_channel_name(participant->chan))
++                               participant->talking=talking;
++               }
++               ao2_unlock(bridge2);
++               ao2_ref(bridge2, -1);
++       }
+ }
+ 
+ static int conf_get_pin(struct ast_channel *chan, struct conference_bridge_user *conference_bridge_user)
+@@ -2224,6 +2244,8 @@
+        ast_cli(a->fd, "%-17s", participant->b_profile.name);
+        ast_cli(a->fd, "%-17s", participant->menu_name);
+        ast_cli(a->fd, "%-17s", S_COR(ast_channel_caller(participant->chan)->id.number.valid, ast_channel_caller(participant->chan)->id.number.str, "<unknown>"));
++       ast_cli(a->fd, "%-21s", S_COR(ast_channel_caller(participant->chan)->id.name.valid, ast_channel_caller(participant->chan)->id.name.str, "<no name>"));
++       ast_cli(a->fd, "%-17s", participant->talking?"talking":"");
+        ast_cli(a->fd, "\n");
+ }
+ 
+@@ -2267,8 +2289,8 @@
+                        ast_cli(a->fd, "No conference bridge named '%s' found!\n", a->argv[2]);
+                        return CLI_SUCCESS;
+                }
+-               ast_cli(a->fd, "Channel                       User Profile     Bridge Profile   Menu             CallerID\n");
+-               ast_cli(a->fd, "============================= ================ ================ ================ ================\n");
++               ast_cli(a->fd, "Channel                       User Profile     Bridge Profile   Menu             CallerID        CallerID name        Talking\n");
++               ast_cli(a->fd, "============================= ================ ================ ================ ================ ==================== =======\n");
+                ao2_lock(bridge);
+                AST_LIST_TRAVERSE(&bridge->active_list, participant, list) {
+                        handle_cli_confbridge_list_item(a, participant);
+@@ -2596,6 +2618,8 @@
+                "Channel: %s\r\n"
+                "Admin: %s\r\n"
+                "MarkedUser: %s\r\n"
++               "Talking: %d\r\n"
++               "Muted: %d\r\n"
+                "\r\n",
+                id_text,
+                bridge->name,
+@@ -2603,7 +2627,9 @@
+                S_COR(ast_channel_caller(participant->chan)->id.name.valid, ast_channel_caller(participant->chan)->id.name.str, "<no name>"),
+                ast_channel_name(participant->chan),
+                ast_test_flag(&participant->u_profile, USER_OPT_ADMIN) ? "Yes" : "No",
+-               ast_test_flag(&participant->u_profile, USER_OPT_MARKEDUSER) ? "Yes" : "No");
++               ast_test_flag(&participant->u_profile, USER_OPT_MARKEDUSER) ? "Yes" : "No",
++               participant->talking,
++               participant->features.mute);
+ }
+ 
+ static int action_confbridgelist(struct mansession *s, const struct message *m)
