@@ -1,3 +1,7 @@
+/* 
+ * run as: node cm_appserv.js
+ */
+
 /* Asterisk AMI connection */
 var AMI_HOST = '127.0.0.1';
 var AMI_PORT = 5038;
