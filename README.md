@@ -6,5 +6,6 @@ app_confbridge monitoring webGUI for Asterisk.
 Public Domain. 
 
 app_confbridge modification required for tracking talking and muted status.
+Here is patches for asterisk 11.7.
 
 
